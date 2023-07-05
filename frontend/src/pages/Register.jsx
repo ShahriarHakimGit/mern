@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
+import {useSelector, useDispatch} from 'react-redux';
+import { useNavigate } from "react-router-dom";
+import {toast} from 'react-toastify'
 import { FaUser } from "react-icons/fa";
+import {register, reset} from '../features/auth/authSlice'
+import Spinner from "../components/Spinner";
 
 function Register() {
     const [formData, setFormData] = useState({
@@ -11,6 +16,23 @@ function Register() {
 
     const {name, email, password, password2} = formData;
 
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const {user, isLoading, isError, isSuccess, message} = useSelector((state)=> {
+        return state.auth;
+    });
+
+    useEffect(() => {
+        if(isError){
+            console.error(message);
+        }
+        if(isSuccess || user){
+            navigate('/');
+            dispatch(reset());
+        }
+    }, [user, isError, isSuccess, message, navigate, dispatch])
+
     const onChange  = (event) => {
         setFormData((prevState) => ({
             ...prevState,
@@ -20,6 +42,20 @@ function Register() {
     
     const onSubmit = (event) => {
         event.preventDefault();
+        if(password !== password2){
+            console.error('password do not match')
+        }else{
+            const userData = {
+                name,
+                email,
+                password,
+            }
+            dispatch(register(userData));
+        }
+    }
+
+    if(isLoading){
+        return <Spinner/>
     }
 
     return (
@@ -39,7 +75,7 @@ function Register() {
                             id="name" name="name" 
                             value={name} 
                             placeholder="Enter your name" 
-                            onChange={onchange}
+                            onChange={onChange}
                         />
                     </div>
                     <div className="form-group">
@@ -49,7 +85,7 @@ function Register() {
                             id="email" name="email" 
                             value={email} 
                             placeholder="Enter your email" 
-                            onChange={onchange}
+                            onChange={onChange}
                         />
                     </div>
                     <div className="form-group">
@@ -59,7 +95,7 @@ function Register() {
                             id="password" name="password" 
                             value={password} 
                             placeholder="Enter your password" 
-                            onChange={onchange}
+                            onChange={onChange}
                         />
                     </div>
                     <div className="form-group">
@@ -69,7 +105,7 @@ function Register() {
                             id="password2" name="password2" 
                             value={password2} 
                             placeholder="Confirm password" 
-                            onChange={onchange}
+                            onChange={onChange}
                         />
                     </div>
                     <div className="form-group">
